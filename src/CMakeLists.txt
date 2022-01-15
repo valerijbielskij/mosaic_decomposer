@@ -45,12 +45,32 @@ find_package(fmt)
 find_package(spdlog)
 find_package(docopt)
 
+#find_package(libdeflate)
+#find_package(opencv)
+#SET("OpenCV_DIR" "/usr/share/OpenCV")
+find_package(OpenCV REQUIRED)
+
+
+add_library(decomposerlib STATIC  imageframeprovideropencv.cpp videoframeprovideropencv.cpp mosaicdecomposer.cpp pixel.cpp frame.cpp)
+target_include_directories(
+  decomposerlib
+    PRIVATE
+    ${OpenCV_INCLUDE_DIRS}
+    /mingw64/include/opencv4/
+)
+
 # Generic test that uses conan libs
 add_executable(intro main.cpp)
+
 target_link_libraries(
   intro
-  PRIVATE project_options
+  PRIVATE decomposerlib
+          project_options
           project_warnings
           docopt::docopt
           fmt::fmt
-          spdlog::spdlog)
+          spdlog::spdlog
+          #opencv::opencv
+          ${OpenCV_LIBS}
+          #libdeflate::libdeflate
+          )
