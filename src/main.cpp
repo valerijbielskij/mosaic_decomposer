@@ -1,5 +1,6 @@
-#include <functional>
-#include <iostream>
+#include <memory>
+#include <string>
+#include <limits>
 
 #include <spdlog/spdlog.h>
 #include <docopt/docopt.h>
@@ -8,61 +9,112 @@
 #include "imageframeprovideropencv.h"
 #include "mosaicdecomposer.h"
 
+static constexpr auto VERSION = "0.1";
+
+// clang-format off
 static constexpr auto USAGE =
-  R"(Naval Fate.
+R"(Mosaic decomposer.
 
     Usage:
-          naval_fate ship new <name>...
-          naval_fate ship <name> move <x> <y> [--speed=<kn>]
-          naval_fate ship shoot <x> <y>
-          naval_fate mine (set|remove) <x> <y> [--moored | --drifting]
-          naval_fate (-h | --help)
-          naval_fate --version
- Options:
-          -h --help     Show this screen.
-          --version     Show version.
-          --speed=<kn>  Speed in knots [default: 10].
-          --moored      Moored (anchored) mine.
-          --drifting    Drifting mine.
+      decompose (video | image) <file_path> [--frames_to_analyze=<frames>] [--skip_front_lines=<front>] [--skip_back_lines=<back>] [--pixel_match=<pm>] [--color_match_diff=<diff>] [--line_match=<lm>]
+      decompose (-h | --help)
+      decompose --version
+
+    Options:
+      -h --help                     Show this screen.
+      video                         Specifies video decomposition mode. file path must be a valid video file.
+      image                         Specifies image decomposition mode. file path must be a valid image file.
+      --version                     Show version.
+      --frames_to_analyze=<frames>  Amount of frames to analyze, 0 for all available [default: 0].
+      --skip_front_lines=<front>    Amount of lines to be skipped from the front [default: 5].
+      --skip_back_lines=<back>      Amount of lines to be skipped from the back [default: 5].
+      --pixel_match=<pm>            Ratio used to decide whether a line shall be considered as a potential split line [default: 1.4].
+      --color_match_diff=<diff>     Minimum amount of color units that have to match [default: 100].
+      --line_match=<lm>             Ratio used to decide whether a line shall be considered as false positive [default: 1.5].
 )";
+// clang-format on
 
-int main(int, const char **argv)
+struct ParseOptions
 {
-    VideoFrameProviderOpenCv image_provider(argv[1]); // TODO path
-    //ImageFrameProviderOpenCv image_provider(argv[1]);
-    MosaicDecomposer decomposer(image_provider);
+    std::filesystem::path m_file_path;
+    bool m_is_video;
 
-try
+    ConfigParams m_config_params;
+};
+
+template <class DowncastedType>
+// note that long long is chosen to extend the range as long, otherwise range check may fail on some platforms
+DowncastedType downcastLong(long long value) 
 {
-      const auto& ret = decomposer.calculateMosaicsDimensions();
-    //const auto& ret = decomposer.translate({0, 90, 180, 270, 360}, {0, 160, 320, 480, 640});
-
-    for (const auto& data : ret)
+    if (value < 0)
     {
-        //std::cout <<  data.m_x << " " << data.m_y << " " <<  data.m_width << " " << data.m_height;
-        spdlog::info("({}; {}), {}x{}", data.m_x, data.m_y, data.m_width, data.m_height);
+        throw std::invalid_argument("value: " + std::to_string(value) + " is negative");
     }
+
+    if (value >= static_cast<long long>(std::numeric_limits<DowncastedType>::max()))
+    {
+        throw std::invalid_argument("value: " + std::to_string(value) +
+           " exceeds required range (" + std::to_string(std::numeric_limits<DowncastedType>::max()-1) + ")");
+    }
+
+    return static_cast<DowncastedType>(value);
 }
-catch(const std::string& e)
+
+ParseOptions parseArgs(std::map<std::string, docopt::value> args)
 {
-  std::cerr << e << '\n';
+    ParseOptions options{};
+
+    options.m_is_video = args["video"].asBool();
+    options.m_file_path = args["<file_path>"].asString();
+
+    options.m_config_params.m_frames_to_analyze = 
+        downcastLong<decltype(options.m_config_params.m_frames_to_analyze)>(args["--frames_to_analyze"].asLong());
+    options.m_config_params.m_skip_front_lines  =
+        downcastLong<decltype(options.m_config_params.m_skip_front_lines)>(args["--skip_front_lines"].asLong());
+    options.m_config_params.m_skip_back_lines = 
+        downcastLong<decltype(options.m_config_params.m_skip_back_lines)>(args["--skip_back_lines"].asLong());
+
+    options.m_config_params.m_minimum_pixel_match_ratio = std::stod(args["--pixel_match"].asString());
+    options.m_config_params.m_minimum_color_match_diff =
+        downcastLong<decltype(options.m_config_params.m_minimum_color_match_diff)>(args["--color_match_diff"].asLong());
+    options.m_config_params.m_minimum_line_match_ratio = std::stod(args["--line_match"].asString());
+
+    return options;
 }
 
+int main(int argc, const char **argv)
+{
+    std::map<std::string, docopt::value> args = docopt::docopt(USAGE,
+        { std::next(argv), std::next(argv, argc) },
+        true,
+        std::string("Mosaic decomposer ") + VERSION);
 
+    try
+    {
+        ParseOptions options = parseArgs(args);
 
-/*
-  std::map<std::string, docopt::value> args = docopt::docopt(USAGE,
-    { std::next(argv), std::next(argv, argc) },
-    true,// show help if requested
-    "Naval Fate 2.0");// version string
+        std::unique_ptr<FrameProviderInterface> frame_provider;
 
-  for (auto const &arg : args) {
-    std::cout << arg.first << "=" << arg.second << std::endl;
-  }
-  */
+        if (options.m_is_video)
+        {
+            frame_provider = std::make_unique<VideoFrameProviderOpenCv>(options.m_file_path);
+        }
+        else
+        {
+            frame_provider = std::make_unique<ImageFrameProviderOpenCv>(options.m_file_path);
+        }
 
-  //Use the default logger (stdout, multi-threaded, colored)
-  //spdlog::info("Hello, {}!", "World");
+        MosaicDecomposer decomposer(*frame_provider, options.m_config_params);
 
-  //fmt::print("Hello, from {}\n", "{fmt}");
+        const auto& ret = decomposer.calculateMosaicsDimensions();
+
+        for (const auto& data : ret)
+        {
+            spdlog::info("({}; {}), {}x{}", data.m_x, data.m_y, data.m_width, data.m_height);
+        }
+    }
+    catch(const std::string& exception)
+    {
+        spdlog::warn("exception caught in main: {}", exception);
+    }
 }

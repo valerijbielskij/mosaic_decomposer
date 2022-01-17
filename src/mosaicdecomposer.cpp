@@ -3,9 +3,26 @@
 #include  <numeric>
 #include <iostream>
 #include "frame.h"
+#include <spdlog/spdlog.h>
+
+constexpr uint8_t MINIMUM_AMOUNT_OF_SAMPLES = 10;
 
 MosaicDecomposer::MosaicDecomposer(FrameProviderInterface& frame_provider, const ConfigParams& params) : m_frame_provider(frame_provider), m_params(params)
 {
+}
+
+void MosaicDecomposer::printConfigParams() const
+{
+    spdlog::info("starting printing configuration parameters");
+
+    spdlog::info("{:<20} = {}", "frames_to_analyze", m_params.m_frames_to_analyze);
+    spdlog::info("{:<20} = {}", "skip_front_lines", m_params.m_skip_front_lines);
+    spdlog::info("{:<20} = {}", "skip_back_lines", m_params.m_skip_back_lines);
+    spdlog::info("{:<20} = {}", "pixel_match_ratio", m_params.m_minimum_pixel_match_ratio);
+    spdlog::info("{:<20} = {}", "color_match_diff", m_params.m_minimum_color_match_diff);
+    spdlog::info("{:<20} = {}", "line_match_ratio", m_params.m_minimum_line_match_ratio);
+
+    spdlog::info("finished printing configuration parameters");
 }
 
 std::vector<MosaicDecomposer::SplitInfo> MosaicDecomposer::calculateMosaicsDimensions()
@@ -17,6 +34,8 @@ std::vector<MosaicDecomposer::SplitInfo> MosaicDecomposer::calculateMosaicsDimen
         return {};
     }
 
+    printConfigParams();
+
     std::vector<SplitPosition> potential_horizontal_splits;
     std::vector<SplitPosition> potential_vertical_splits;
 
@@ -26,10 +45,14 @@ std::vector<MosaicDecomposer::SplitInfo> MosaicDecomposer::calculateMosaicsDimen
     uint16_t width = 0;
     uint16_t height = 0;
 
-    uint32_t processed_frames = 0; // TODO limit amount?
+    uint32_t processed_frames = 0;
+
+    spdlog::info("starting frame analysis");
 
     while (const auto& frame = m_frame_provider.getNext())
     {
+        spdlog::info("starting analyzing frame: {}", processed_frames + 1);
+
         if (width == 0)
         {
             width = frame->getWidth();
@@ -57,8 +80,14 @@ std::vector<MosaicDecomposer::SplitInfo> MosaicDecomposer::calculateMosaicsDimen
         const auto& rotated = frame->rotate90();
         processFrame(rotated, potential_vertical_splits, vertical_comparisons);
 
-        processed_frames++;
+        if (++processed_frames == m_params.m_frames_to_analyze)
+        {
+            spdlog::info("reached requested amount of frames to analyze, stopping");
+            break;
+        }
     }
+
+    spdlog::info("finished analyzing frames, total amount: {}", processed_frames);
 
     auto collated_horizontal_splits = collateAdjacentSplits(potential_horizontal_splits);
     auto collated_vertical_splits = collateAdjacentSplits(potential_vertical_splits);
@@ -80,18 +109,12 @@ void MosaicDecomposer::processFrame(const Frame& frame, std::vector<SplitPositio
 {
     potential_splits.resize(frame.getHeight());
 
-    //std::cout << "w= " << frame.getWidth() << "h= " << frame.getHeight();
-
-    std::vector<double> match_rates_of_processed_positions;
-
-    // micro optimization since these methods might need to transpose size
+    // micro optimization since these methods might need to transpose the size
     const auto frame_width = frame.getWidth();
     const auto frame_height = frame.getHeight();
 
-    SplitPosition skip_front = 5;
-    SplitPosition skip_back = 5;
-
-    for (SplitPosition i = skip_front; i < frame_height - (skip_back ? skip_back : 1); i++)
+    const auto length = frame_height - (m_params.m_skip_back_lines ? m_params.m_skip_back_lines : 1);
+    for (SplitPosition i = m_params.m_skip_front_lines; i < length; i++)
     {
         Frame::DimensionsType matched_pixels = 0;
 
@@ -100,60 +123,27 @@ void MosaicDecomposer::processFrame(const Frame& frame, std::vector<SplitPositio
             auto current_pixel = frame.get(j, i);
             auto next_pixel = frame.get(j, i + 1);
 
-            if (current_pixel.coarseCompare(next_pixel, 100))
+            if (current_pixel.coarseCompare(next_pixel, m_params.m_minimum_color_match_diff))
             {
                 matched_pixels++;
             }
         }
 
-        const auto average = global_comparisons.getTotalAverage();
-
         const auto current_line_match_rate = static_cast<double>(matched_pixels) / frame_width * 100.;
+        const auto is_rate_below_acceptable = current_line_match_rate < 
+                (global_comparisons.getTotalAverage() / m_params.m_minimum_pixel_match_ratio);
 
-        if (global_comparisons.getSampleCount() > 10 && current_line_match_rate < (average / 1.4)) // TODO magic const
+        if (global_comparisons.getSampleCount() > MINIMUM_AMOUNT_OF_SAMPLES && is_rate_below_acceptable)
         {
-            // TODO assert size?
-            //std::cout << "hh" << i << "\n" << std::flush;
             potential_splits[i]++;
         }
         
         global_comparisons.addSample(current_line_match_rate);
-        
-        
-        /*
-        //std::cout << "pf: " << i << ", matched_pixels= " << matched_pixels << ", avg= " << average << ", curr= " << current_line_match_rate << std::endl;
-
-        // TODO remove min gap concept?
-        // TODO use global avg of all frames?
-        // TODO consider min gap
-        if (match_rates_of_processed_positions.size() < 20)
-        {
-            match_rates_of_processed_positions.push_back(current_line_match_rate);
-            continue;
-        }
-
-        //const auto average = std::accumulate(match_rates_of_processed_positions.begin(), match_rates_of_processed_positions.end(), 0.f) 
-        //    / static_cast<float>(match_rates_of_processed_positions.size());
-
-        if (current_line_match_rate < (average / 1.4)) // TODO magic const
-        {
-            // TODO assert size?
-            std::cout << "hh" << i << "\n" << std::flush;
-            potential_splits[i]++;
-            match_rates_of_processed_positions.clear(); // TODO clarify
-        }
-        else
-        {
-            match_rates_of_processed_positions.push_back(current_line_match_rate);
-        }
-        */
     }
 }
 
 std::vector<MosaicDecomposer::SplitOccurenceData> MosaicDecomposer::collateAdjacentSplits(std::vector<SplitPosition> potential_splits) const
 {
-    std::cout << "potential_splits: " << potential_splits.size() << "\n\n" << std::flush;
-
     std::vector<SplitOccurenceData> collated_splits;
 
     auto update = [](SplitPosition& current_value, SplitPosition& next_value)
@@ -222,7 +212,7 @@ std::vector<MosaicDecomposer::SplitPosition> MosaicDecomposer::dropFalsePositive
 
     for (const auto& data : potential_splits)
     {
-        if ( data.m_match_count > (total_average / 1.5f)) // TODO magic const
+        if ( data.m_match_count > (total_average / m_params.m_minimum_line_match_ratio))
         {
             filtered_splits.push_back(data.m_position);
         }

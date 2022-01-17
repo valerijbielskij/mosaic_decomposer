@@ -1,51 +1,11 @@
-option(CPP_STARTER_USE_QT "Enable compilation of QT sample" OFF)
-option(CPP_STARTER_USE_FLTK "Enable compilation of FLTK sample" OFF)
-option(CPP_STARTER_USE_GTKMM "Enable compilation of GTKMM sample" OFF)
-option(CPP_STARTER_USE_IMGUI "Enable compilation of ImGui sample" OFF)
-option(CPP_STARTER_USE_NANA "Enable compilation of Nana GUI sample" OFF)
-option(CPP_STARTER_USE_SDL "Enable compilation of SDL sample" OFF)
 
-# sdl
-if(CPP_STARTER_USE_SDL)
-  message("Using SDL2")
-  add_subdirectory(sdl)
-endif()
+SET(lib_name decomposerlib)
+SET(exec_name decomposer)
 
-# qt
-if(CPP_STARTER_USE_QT)
-  message("Using Qt")
-  add_subdirectory(qt)
-endif()
-
-# fltk test
-if(CPP_STARTER_USE_FLTK)
-  message("Using FLTK")
-  add_subdirectory(fltk)
-endif()
-
-# gtkmm test
-if(CPP_STARTER_USE_GTKMM)
-  message("Using gtkmm")
-  add_subdirectory(gtkmm)
-endif()
-
-# imgui example
-if(CPP_STARTER_USE_IMGUI)
-  message("Using Dear ImGui")
-  add_subdirectory(imgui)
-endif()
-
-# Nana
-if(CPP_STARTER_USE_NANA)
-  message("Using Nana")
-  add_subdirectory(nana)
-endif()
-
-find_package(fmt)
+#find_package(fmt)
 find_package(spdlog)
 find_package(docopt)
 
-#find_package(libdeflate)
 #find_package(opencv)
 #SET("OpenCV_DIR" "/usr/share/OpenCV")
 find_package(OpenCV REQUIRED)
@@ -53,24 +13,25 @@ find_package(OpenCV REQUIRED)
 
 add_library(decomposerlib STATIC  imageframeprovideropencv.cpp videoframeprovideropencv.cpp mosaicdecomposer.cpp pixel.cpp frame.cpp)
 target_include_directories(
-  decomposerlib
+  ${lib_name}
     PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     /mingw64/include/opencv4/
 )
+target_link_libraries(
+  ${lib_name}
+  PRIVATE spdlog::spdlog
+)
 
-# Generic test that uses conan libs
-add_executable(intro main.cpp)
+add_executable(${exec_name} main.cpp)
 
 target_link_libraries(
-  intro
-  PRIVATE decomposerlib
+  ${exec_name}
+  PRIVATE ${lib_name}
           project_options
           project_warnings
           docopt::docopt
-          fmt::fmt
           spdlog::spdlog
           #opencv::opencv
           ${OpenCV_LIBS}
-          #libdeflate::libdeflate
           )
