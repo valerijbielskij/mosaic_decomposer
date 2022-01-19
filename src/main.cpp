@@ -16,21 +16,21 @@ static constexpr auto USAGE =
 R"(Mosaic decomposer.
 
     Usage:
-      decompose (video | image) <file_path> [--frames_to_analyze=<frames>] [--skip_front_lines=<front>] [--skip_back_lines=<back>] [--pixel_match=<pm>] [--color_match_diff=<diff>] [--line_match=<lm>]
+      decompose (video | image) <file-path> [--frames=<frames>] [--skip-front-lines=<front>] [--skip-back-lines=<back>] [--pixel-match=<pm>] [--color-match=<diff>] [--line-match=<lm>]
       decompose (-h | --help)
       decompose --version
 
     Options:
-      -h --help                     Show this screen.
-      video                         Specifies video decomposition mode. file path must be a valid video file.
-      image                         Specifies image decomposition mode. file path must be a valid image file.
-      --version                     Show version.
-      --frames_to_analyze=<frames>  Amount of frames to analyze, 0 for all available [default: 0].
-      --skip_front_lines=<front>    Amount of lines to be skipped from the front [default: 5].
-      --skip_back_lines=<back>      Amount of lines to be skipped from the back [default: 5].
-      --pixel_match=<pm>            Ratio used to decide whether a line shall be considered as a potential split line [default: 1.4].
-      --color_match_diff=<diff>     Minimum amount of color units that have to match [default: 100].
-      --line_match=<lm>             Ratio used to decide whether a line shall be considered as false positive [default: 1.5].
+      -h --help                   Show this screen.
+      video                       Specifies video decomposition mode. file path must be a valid video file.
+      image                       Specifies image decomposition mode. file path must be a valid image file.
+      --version                   Show version.
+      --frames=<frames>           Amount of frames to analyze, 0 for all available [default: 0].
+      --skip-front-lines=<front>  Amount of lines to be skipped from the front [default: 5].
+      --skip-back-lines=<back>    Amount of lines to be skipped from the back [default: 5].
+      --pixel-match=<pm>          Ratio used to decide whether a line shall be considered as a potential split line [default: 1.5].
+      --color-match=<diff>        Minimum amount of color units that have to match [default: 80].
+      --line-match=<lm>           Ratio used to decide whether a line shall be considered as false positive [default: 1.8].
 )";
 // clang-format on
 
@@ -54,7 +54,7 @@ DowncastedType downcastLong(long long value)
     if (value >= static_cast<long long>(std::numeric_limits<DowncastedType>::max()))
     {
         throw std::invalid_argument("value: " + std::to_string(value) +
-           " exceeds required range (" + std::to_string(std::numeric_limits<DowncastedType>::max()-1) + ")");
+           " exceeds required range (" + std::to_string(std::numeric_limits<DowncastedType>::max() - 1) + ")");
     }
 
     return static_cast<DowncastedType>(value);
@@ -65,19 +65,19 @@ ParseOptions parseArgs(std::map<std::string, docopt::value> args)
     ParseOptions options{};
 
     options.m_is_video = args["video"].asBool();
-    options.m_file_path = args["<file_path>"].asString();
+    options.m_file_path = args["<file-path>"].asString();
 
     options.m_config_params.m_frames_to_analyze = 
-        downcastLong<decltype(options.m_config_params.m_frames_to_analyze)>(args["--frames_to_analyze"].asLong());
+        downcastLong<decltype(options.m_config_params.m_frames_to_analyze)>(args["--frames"].asLong());
     options.m_config_params.m_skip_front_lines  =
-        downcastLong<decltype(options.m_config_params.m_skip_front_lines)>(args["--skip_front_lines"].asLong());
+        downcastLong<decltype(options.m_config_params.m_skip_front_lines)>(args["--skip-front-lines"].asLong());
     options.m_config_params.m_skip_back_lines = 
-        downcastLong<decltype(options.m_config_params.m_skip_back_lines)>(args["--skip_back_lines"].asLong());
+        downcastLong<decltype(options.m_config_params.m_skip_back_lines)>(args["--skip-back-lines"].asLong());
 
-    options.m_config_params.m_minimum_pixel_match_ratio = std::stod(args["--pixel_match"].asString());
+    options.m_config_params.m_minimum_pixel_match_ratio = std::stod(args["--pixel-match"].asString());
     options.m_config_params.m_minimum_color_match_diff =
-        downcastLong<decltype(options.m_config_params.m_minimum_color_match_diff)>(args["--color_match_diff"].asLong());
-    options.m_config_params.m_minimum_line_match_ratio = std::stod(args["--line_match"].asString());
+        downcastLong<decltype(options.m_config_params.m_minimum_color_match_diff)>(args["--color-match"].asLong());
+    options.m_config_params.m_minimum_line_match_ratio = std::stod(args["--line-match"].asString());
 
     return options;
 }
@@ -108,6 +108,7 @@ int main(int argc, const char **argv)
 
         const auto& ret = decomposer.calculateMosaicsDimensions();
 
+        spdlog::info("processing finished, outputting dimensions of all recongnized mosaics");
         for (const auto& data : ret)
         {
             spdlog::info("({}; {}), {}x{}", data.m_x, data.m_y, data.m_width, data.m_height);
@@ -116,5 +117,9 @@ int main(int argc, const char **argv)
     catch(const std::string& exception)
     {
         spdlog::warn("exception caught in main: {}", exception);
+    }
+    catch(const std::exception& exception)
+    {
+        spdlog::warn("exception caught in main: {}", exception.what());
     }
 }

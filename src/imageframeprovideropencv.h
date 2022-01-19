@@ -1,9 +1,11 @@
 
 #pragma once
 
-#include "frameproviderinterface.h"
-#include <opencv2/core/mat.hpp>
 #include <filesystem>
+
+#include <opencv2/core/mat.hpp>
+
+#include "frameproviderinterface.h"
 
 class ImageFrameProviderOpenCv: public FrameProviderInterface
 {

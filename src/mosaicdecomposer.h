@@ -5,31 +5,36 @@
 #include <cstdint>
 
 #include "configparams.h"
+#include "frame.h"
 
 class FrameProviderInterface;
-class Frame;
-    
+
+/**
+ * @brief Core algorithm of mosaic decomposition. It can be summarized with the 3 following steps:
+ *  1. Collect vertical and horizontal lines which have bigger color mismatch than the average.
+ *  2. Collate adjacent lines as they are sometimes artifacts caused by misalignment on the borders of mosaics.
+ *  3. Drop such lines which were detected substantially less times than the rest (false positives).
+ */
 class MosaicDecomposer
 {
 public:
+    using SplitPosition = Frame::DimensionsType;
 
-    using SplitPosition = uint16_t; // TODO static assert with frame size?
-
-    struct SplitInfo
+    struct SplitDimensions
     {
         SplitPosition m_x{};
         SplitPosition m_y{};
-        uint16_t m_width{};
-        uint16_t m_height{};
+        Frame::DimensionsType m_width{};
+        Frame::DimensionsType m_height{};
     };
 
     MosaicDecomposer(FrameProviderInterface& frame_provider, const ConfigParams& params = ConfigParams{});
     ~MosaicDecomposer() = default;
 
-    std::vector<SplitInfo> calculateMosaicsDimensions();
+    std::vector<SplitDimensions> calculateMosaicsDimensions();
 
 private:
-    struct LineComparisonData
+    struct SampleAvgStorage
     {
         void addSample(double sample);
 
@@ -45,18 +50,18 @@ private:
     {
         // vertical or horizontal position of the split
         SplitPosition m_position;
-        // match rate of successful pixel comparisons with regards to the previous position // TODO update
+        // amount of occurrences of the potential split in the context of all processed frames
         uint16_t m_match_count;
     };
 
     void printConfigParams() const;
-    void processFrame(const Frame& frame, std::vector<SplitPosition>& potential_splits, LineComparisonData& global_comparisons) const;
+    void processFrame(const Frame& frame, std::vector<SplitPosition>& potential_splits, SampleAvgStorage& comparisons) const;
     std::vector<SplitOccurenceData> collateAdjacentSplits(std::vector<SplitPosition> potential_splits) const;
     std::vector<SplitPosition> dropFalsePositiveSplits(const std::vector<SplitOccurenceData>& potential_splits) const;
 
-    std::vector<SplitInfo> translate(
+    std::vector<SplitDimensions> translate(
         const std::vector<SplitPosition>& horizontal_positions, const std::vector<SplitPosition>& vertical_positions) const;
 
     FrameProviderInterface& m_frame_provider;
-    ConfigParams m_params;
+    const ConfigParams m_params;
 };

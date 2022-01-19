@@ -51,8 +51,7 @@ macro(run_conan)
       missing
       # Pass compile-time configured options into conan
       OPTIONS
-      cpp_starter_use_imgui=${CPP_STARTER_USE_IMGUI}
-      cpp_starter_use_sdl=${CPP_STARTER_USE_SDL}
+      use_conan_opencv=${USE_CONAN_OPENCV}
       SETTINGS
       ${settings})
   endforeach()

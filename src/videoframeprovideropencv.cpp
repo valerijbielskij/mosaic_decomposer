@@ -1,9 +1,14 @@
-#include "videoframeprovideropencv.h"
 #include <opencv2/core/mat.hpp>
+#include <spdlog/spdlog.h>
+
+#include "videoframeprovideropencv.h"
 #include "frame.h"
 
-VideoFrameProviderOpenCv::VideoFrameProviderOpenCv(const std::filesystem::path& file_path): FrameProviderInterface(), m_video_capture(file_path.string())
+VideoFrameProviderOpenCv::VideoFrameProviderOpenCv(const std::filesystem::path& file_path): 
+    FrameProviderInterface(), 
+    m_video_capture(file_path.string())
 {
+    static_assert(sizeof(cv::Vec3b::value_type) == sizeof(Pixel::Color));
 }
 
 bool VideoFrameProviderOpenCv::isReady() const 
@@ -13,19 +18,30 @@ bool VideoFrameProviderOpenCv::isReady() const
 
 std::optional<Frame> VideoFrameProviderOpenCv::getNext() 
 {
-    static_assert(sizeof(cv::Vec3b::value_type) == sizeof(Color));
+    if (!isReady())
+    {
+        spdlog::warn("video read is not ready");
+        return {};
+    }    
 
     cv::Mat mat;
     cv::OutputArray array(mat);
 
     if (m_video_capture.read(mat))
     {
-        // TODO range check for frame size
-
-        Frame frame(static_cast<uint16_t>(mat.cols), static_cast<uint16_t>(mat.rows));
-        for (uint16_t row = 0; row < static_cast<uint16_t>(mat.rows); row++) 
+        if (mat.cols < 1 || mat.rows < 1)
         {
-            for (uint16_t col = 0; col < static_cast<uint16_t>(mat.cols); col++)
+            spdlog::error("acquired invalid material dimensions from a video ({}, {})", mat.cols, mat.rows);
+            return {};
+        }
+
+        const auto cols = static_cast<Frame::DimensionsType>(mat.cols);
+        const auto rows = static_cast<Frame::DimensionsType>(mat.rows);
+
+        Frame frame(cols, rows);
+        for (Frame::DimensionsType row = 0; row < rows; row++) 
+        {
+            for (Frame::DimensionsType col = 0; col < cols; col++)
             {
                 const auto& src_pixel = mat.at<cv::Vec3b>(row, col);
 
@@ -42,6 +58,7 @@ std::optional<Frame> VideoFrameProviderOpenCv::getNext()
     }
     else
     {
+        spdlog::info("read from the video capture was unsuccessful, probably all of the frames were provided");
         return {};
     }
 }

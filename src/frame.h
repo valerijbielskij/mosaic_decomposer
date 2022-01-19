@@ -1,18 +1,25 @@
-
 #pragma once
 
 #include <vector>
 #include <memory>
-#include "pixel.h"
+#include <utility>
 
+#include "pixel.h"
+#include "commondefinitions.h"
+
+/*!
+ * @brief Defines two dimensional array which maintains pixels of a frame.
+ * @note it utilizes implicit sharing to avoid deep copies, 
+ * however it detaches when modifications are performed on the copied object.
+ */
 class Frame
 {
 public:
     using PixelContainer = std::vector<std::vector<Pixel>>;
-    using DimensionsType = uint16_t;
+    using DimensionsType = common::DimensionsType;
 
     Frame(DimensionsType width, DimensionsType height);
-    Frame(const Frame& other) = default;
+    Frame(const Frame& other);
 
     Frame rotate90() const;
 
@@ -34,11 +41,13 @@ private:
     PixelContainer& get();
     const PixelContainer& get() const;
 
-    uint16_t getActualHeight() const;
-    uint16_t getActualWidth() const;
+    DimensionsType getActualHeight() const;
+    DimensionsType getActualWidth() const;
 
-    void transpose(uint16_t& x, uint16_t& y) const;
+    std::pair<DimensionsType, DimensionsType> transpose(DimensionsType x, DimensionsType y) const;
 
     std::shared_ptr<PixelContainer> m_pixels;
+    // ownership semantics imply only content ownership, not the allocated memory ownership
+    bool m_owns_content;
     const Transposition m_transposition = Transposition::None;
 };

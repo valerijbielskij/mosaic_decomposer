@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+
 #include "frame.h"
 
 
@@ -135,5 +136,61 @@ TEST_CASE("Frame operations", "Frame")
         REQUIRE (rotated.get(0, 9).m_red == 149);
         REQUIRE (rotated.get(0, 9).m_green == 149);
         REQUIRE (rotated.get(0, 9).m_blue == 149);
+    }
+}
+
+TEST_CASE("Frame copies", "Frame")
+{
+    std::unique_ptr<Frame> frame(std::make_unique<Frame>(2, 2));
+
+    frame->set(0, 0, Pixel{1, 1, 1});
+
+    REQUIRE (frame->get(0, 0).m_red == 1);
+
+    auto frame_copy(std::make_unique<Frame>(*frame));
+
+    // copied frame shall detach on write
+    {
+        REQUIRE (frame_copy->get(0, 0).m_red == 1);
+
+        frame_copy->set(0, 0, Pixel{2, 2, 2});
+
+        REQUIRE (frame->get(0, 0).m_red == 1);
+
+        REQUIRE (frame_copy->get(0, 0).m_red == 2);
+    }
+
+    auto rotated_copy(frame_copy->rotate90());
+
+   // rotated copy shall not have any negative effect on the initial frame
+    {
+        REQUIRE (frame->get(0, 0).m_red == 1);
+
+        REQUIRE (frame_copy->get(0, 0).m_red == 2);
+
+        REQUIRE (rotated_copy.get(1, 0).m_red == 2);
+    }
+
+    // initial frame release shall not have negative effect
+    {
+        frame.release();
+
+        REQUIRE (frame_copy->get(0, 0).m_red == 2);
+
+        REQUIRE (rotated_copy.get(1, 0).m_red == 2);
+    }
+
+    // source frame release shall not have negative effect on the rotated copy
+    {
+        frame_copy.release();
+
+        REQUIRE (rotated_copy.get(1, 0).m_red == 2);
+    }
+
+   // rotated copy can be altered independently
+    {   
+        rotated_copy.set(1, 0, Pixel{3, 3, 3});
+
+        REQUIRE (rotated_copy.get(1, 0).m_red == 3);
     }
 }
