@@ -2,7 +2,6 @@
 
 #include "frame.h"
 
-
 TEST_CASE("Pixel operations", "Pixel")
 {
     Pixel pixel{123, 75, 255};

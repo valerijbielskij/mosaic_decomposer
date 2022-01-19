@@ -116,10 +116,10 @@ int main(int argc, const char **argv)
     }
     catch(const std::string& exception)
     {
-        spdlog::warn("exception caught in main: {}", exception);
+        spdlog::critical("exception caught in main: {}", exception);
     }
     catch(const std::exception& exception)
     {
-        spdlog::warn("exception caught in main: {}", exception.what());
+        spdlog::critical("exception caught in main: {}", exception.what());
     }
 }
