@@ -5,15 +5,15 @@ find_package(spdlog)
 find_package(docopt)
 
 if (USE_CONAN_OPENCV)
-  set(MY_OPENCV_LIB opencv::opencv)
   find_package(opencv)
+  set(MY_OPENCV_LIB opencv::opencv)
 else()
+  find_package(OpenCV REQUIRED core videoio)
   set(MY_OPENCV_LIB ${OpenCV_LIBS})
-  find_package(OpenCV REQUIRED)
 endif(USE_CONAN_OPENCV)
 
 set(SOURCES imageframeprovideropencv.cpp videoframeprovideropencv.cpp mosaicdecomposer.cpp pixel.cpp frame.cpp)
-set(HEADERS commondefinitions.h  configparams.h  frame.h  frameproviderinterface.h	imageframeprovideropencv.h  mosaicdecomposer.h	pixel.h  videoframeprovideropencv.h)
+set(HEADERS commondefinitions.h configparams.h frame.h frameproviderinterface.h	imageframeprovideropencv.h mosaicdecomposer.h pixel.h videoframeprovideropencv.h)
 
 add_library(decomposerlib STATIC ${SOURCES} ${HEADERS})
 target_include_directories(
