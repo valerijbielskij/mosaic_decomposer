@@ -4,9 +4,9 @@
 #include "imageframeprovideropencv.h"
 #include "frame.h"
 
-ImageFrameProviderOpenCv::ImageFrameProviderOpenCv(const std::filesystem::path& file_path): 
+ImageFrameProviderOpenCv::ImageFrameProviderOpenCv(const std::string& file_path): 
     FrameProviderInterface(), 
-    m_image(cv::imread(file_path.string()))
+    m_image(cv::imread(file_path))
 {
     static_assert(sizeof(cv::Vec3b::value_type) == sizeof(Pixel::Color));
 }

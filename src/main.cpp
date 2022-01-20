@@ -36,7 +36,7 @@ R"(Mosaic decomposer.
 
 struct ParseOptions
 {
-    std::filesystem::path m_file_path;
+    std::string m_file_path;
     bool m_is_video;
 
     ConfigParams m_config_params;

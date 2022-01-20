@@ -4,9 +4,9 @@
 #include "videoframeprovideropencv.h"
 #include "frame.h"
 
-VideoFrameProviderOpenCv::VideoFrameProviderOpenCv(const std::filesystem::path& file_path): 
+VideoFrameProviderOpenCv::VideoFrameProviderOpenCv(const std::string& file_path): 
     FrameProviderInterface(), 
-    m_video_capture(file_path.string())
+    m_video_capture(file_path)
 {
     static_assert(sizeof(cv::Vec3b::value_type) == sizeof(Pixel::Color));
 }
