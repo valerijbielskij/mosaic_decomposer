@@ -27,7 +27,7 @@ TEST_CASE("Pixel operations", "Pixel")
     SECTION( "coarse comparisons of similar objects" ) 
     {
         auto other = pixel;
-        other.m_red += 10;
+        other.m_red = static_cast<Pixel::Color>(other.m_red + 10);
 
         REQUIRE (pixel.coarseCompare(other, 11));
 
@@ -35,7 +35,7 @@ TEST_CASE("Pixel operations", "Pixel")
 
         REQUIRE (pixel.coarseCompare(other, 9) == false);
 
-        other.m_green += 5;
+        other.m_green = static_cast<Pixel::Color>(other.m_green + 5);
 
         REQUIRE (pixel.coarseCompare(other, 16));
 
@@ -43,7 +43,7 @@ TEST_CASE("Pixel operations", "Pixel")
 
         REQUIRE (pixel.coarseCompare(other, 14) == false);
 
-        other.m_blue -= 100;
+        other.m_blue = static_cast<Pixel::Color>(other.m_blue - 100);
 
         REQUIRE (pixel.coarseCompare(other, 116));
 
