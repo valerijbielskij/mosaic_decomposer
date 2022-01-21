@@ -19,23 +19,26 @@ add_library(decomposerlib STATIC ${SOURCES} ${HEADERS})
 target_include_directories(
   ${lib_name}
     PRIVATE
-    ${OpenCV_INCLUDE_DIRS}
+      ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(
   ${lib_name}
-  PRIVATE spdlog::spdlog
-  ${MY_OPENCV_LIB}
+    PRIVATE 
+      spdlog::spdlog
+      project_options
+      project_warnings
+      ${MY_OPENCV_LIB}
 )
 
 add_executable(${exec_name} main.cpp)
 
 target_link_libraries(
   ${exec_name}
-  PRIVATE ${lib_name}
-          project_options
-          project_warnings
-          docopt::docopt
-          spdlog::spdlog
+    PRIVATE ${lib_name}
+      project_options
+      project_warnings
+      docopt::docopt
+      spdlog::spdlog
 	  ${MY_OPENCV_LIB}
 )
