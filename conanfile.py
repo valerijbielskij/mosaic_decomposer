@@ -18,8 +18,9 @@ class MosaicDecomposerProject(ConanFile):
 
     def requirements(self):
         if self.options.use_conan_opencv == "ON":
-            self.requires("opencv/4.0.1@conan/stable")
             self.requires("bzip2/1.0.8")
-            self.requires("libjpeg/9c")
-
-
+            self.requires("libjpeg/9d")
+            self.requires("zlib/1.2.11")
+            self.requires("libpng/1.6.37")
+            self.requires("opencv/3.4.12")
+   
