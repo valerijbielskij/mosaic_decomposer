@@ -25,7 +25,6 @@ std::optional<Frame> VideoFrameProviderOpenCv::getNext()
     }    
 
     cv::Mat mat;
-    cv::OutputArray array(mat);
 
     if (m_video_capture.read(mat))
     {

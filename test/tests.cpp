@@ -140,7 +140,8 @@ TEST_CASE("Frame operations", "Frame")
 
 TEST_CASE("Frame copies", "Frame")
 {
-    std::unique_ptr<Frame> frame(std::make_unique<Frame>(2, 2));
+  std::unique_ptr<Frame> frame(std::make_unique<Frame>(static_cast<Frame::DimensionsType>(2), 
+      static_cast<Frame::DimensionsType>(2)));
 
     frame->set(0, 0, Pixel{1, 1, 1});
 

@@ -207,13 +207,13 @@ std::vector<MosaicDecomposer::SplitPosition> MosaicDecomposer::dropFalsePositive
 {
     std::vector<SplitPosition> filtered_splits;
 
-    const auto sum = std::accumulate(potential_splits.begin(), potential_splits.end(), 0.f, 
-        [](float accumulated_value, const SplitOccurenceData& data) -> float
+    const auto sum = std::accumulate(potential_splits.begin(), potential_splits.end(), 0., 
+        [](double accumulated_value, const SplitOccurenceData& data) -> double
     {
         return accumulated_value + data.m_match_count;
     });
 
-    const auto total_average = sum / static_cast<float>(potential_splits.size());
+    const auto total_average = sum / static_cast<double>(potential_splits.size());
 
     for (const auto& data : potential_splits)
     {
