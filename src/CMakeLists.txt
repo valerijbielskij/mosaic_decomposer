@@ -3,12 +3,11 @@ SET(exec_name decomposer)
 
 find_package(spdlog)
 find_package(docopt)
+find_package(OpenCV REQUIRED)
 
 if (USE_CONAN_OPENCV)
-  find_package(opencv)
   set(MY_OPENCV_LIB opencv::opencv)
 else()
-  find_package(OpenCV REQUIRED)
   set(MY_OPENCV_LIB ${OpenCV_LIBS})
 endif(USE_CONAN_OPENCV)
 
