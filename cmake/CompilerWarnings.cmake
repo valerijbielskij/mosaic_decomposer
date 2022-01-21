@@ -6,8 +6,9 @@ function(set_project_warnings project_name)
   option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" ON)
 
   set(MSVC_WARNINGS
-      /W4 # Baseline reasonable warnings
-      /w14242 # 'identifier': conversion from 'type1' to 'type1', possible loss of data
+      # disabled because causes warnings on fmt lib with msvc2022
+      #/W4 # Baseline reasonable warnings
+      #/w14242 # 'identifier': conversion from 'type1' to 'type1', possible loss of data
       /w14254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
       /w14263 # 'function': member function does not override any base class virtual member function
       /w14265 # 'classname': class has virtual functions, but destructor is not virtual instances of this class may not
@@ -47,7 +48,7 @@ function(set_project_warnings project_name)
       -Wnull-dereference # warn if a null dereference is detected
       -Wdouble-promotion # warn if float is implicit promoted to double
       -Wformat=2 # warn on security issues around functions that format output (ie printf)
-      #-Wimplicit-fallthrough # warn on statements that fallthrough without an explicit annotation
+      -Wimplicit-fallthrough # warn on statements that fallthrough without an explicit annotation
   )
 
   if(WARNINGS_AS_ERRORS)
