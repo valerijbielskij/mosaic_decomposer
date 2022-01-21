@@ -121,7 +121,7 @@ void MosaicDecomposer::processFrame(const Frame& frame, std::vector<SplitPositio
         for (SplitPosition j = 0; j < frame_width; j++)
         {
             auto current_pixel = frame.get(j, i);
-            auto next_pixel = frame.get(j, i + 1);
+            auto next_pixel = frame.get(j, static_cast<SplitPosition>(i + 1));
 
             if (current_pixel.coarseCompare(next_pixel, m_params.m_minimum_color_match_diff))
             {
@@ -154,14 +154,14 @@ std::vector<MosaicDecomposer::SplitOccurenceData> MosaicDecomposer::collateAdjac
         {
             if (current_value < next_value)
             {
-                next_value += current_value;
+                next_value = static_cast<SplitPosition>(next_value + current_value);
                 current_value = 0;
                 spdlog::info("collated value of position {} into position {}, new match count is {}", 
                         curr_index, next_index, next_value);
             }
             else
             {
-                current_value += next_value;
+                current_value = static_cast<SplitPosition>(current_value + next_value);
                 next_value = 0;
                 spdlog::info("collated value of position {} into position {}, new match count is {}", 
                         next_index, curr_index, current_value);
@@ -172,7 +172,8 @@ std::vector<MosaicDecomposer::SplitOccurenceData> MosaicDecomposer::collateAdjac
     for (SplitPosition i = 0; i < static_cast<SplitPosition>(potential_splits.size()) - 1; i++)
     {
         auto& current_match_count = potential_splits[i];
-        auto& next_match_count = potential_splits[i + 1];
+        const auto next_index = static_cast<SplitPosition>(i + 1);
+        auto& next_match_count = potential_splits[next_index];
         
         if (current_match_count == 0)
         {
@@ -181,14 +182,15 @@ std::vector<MosaicDecomposer::SplitOccurenceData> MosaicDecomposer::collateAdjac
 
         if (next_match_count > 0)
         {
-            update(current_match_count, next_match_count, i, i + 1);
+            update(current_match_count, next_match_count, i, next_index);
         }
 
         if (current_match_count && i < static_cast<SplitPosition>(potential_splits.size()) - 2)
         {
-            auto& next_next_match_count = potential_splits[i + 2];
+            const auto next_next_index = static_cast<SplitPosition>(i + 2);
+            auto& next_next_match_count = potential_splits[next_next_index];
 
-            update(current_match_count, next_next_match_count, i, i + 2);
+            update(current_match_count, next_next_match_count, i, next_next_index);
         }
 
         if (current_match_count > 0)
@@ -240,10 +242,10 @@ std::vector<MosaicDecomposer::SplitDimensions> MosaicDecomposer::translate(
             for (SplitPosition i = 0; i < vertical_positions.size() - 1; i++)
             {
             const auto current_v = vertical_positions[i];
-            const auto next_v = vertical_positions[i + 1];
+            const auto next_v = vertical_positions[static_cast<SplitPosition>(i + 1)];
 
             const auto current_h = horizontal_positions[j];
-            const auto next_h = horizontal_positions[j + 1];
+            const auto next_h = horizontal_positions[static_cast<SplitPosition>(j + 1)];
 
             if (current_h >= next_h)
             {
