@@ -46,17 +46,19 @@ private:
         uint64_t m_total_samples = 0;
     };
 
+    using SplitOccurenceType = uint16_t;
+
     struct SplitOccurenceData
     {
         // vertical or horizontal position of the split
         SplitPosition m_position;
         // amount of occurrences of the potential split in the context of all processed frames
-        uint16_t m_match_count;
+        SplitOccurenceType m_match_count;
     };
 
     void printConfigParams() const;
     void processFrame(const Frame& frame, std::vector<SplitPosition>& potential_splits, SampleAvgStorage& comparisons) const;
-    std::vector<SplitOccurenceData> collateAdjacentSplits(std::vector<SplitPosition> potential_splits) const;
+    std::vector<SplitOccurenceData> collateAdjacentSplits(std::vector<SplitOccurenceType> potential_splits) const;
     std::vector<SplitPosition> dropFalsePositiveSplits(const std::vector<SplitOccurenceData>& potential_splits) const;
 
     std::vector<SplitDimensions> translate(

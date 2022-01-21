@@ -143,25 +143,25 @@ void MosaicDecomposer::processFrame(const Frame& frame, std::vector<SplitPositio
 }
 
 std::vector<MosaicDecomposer::SplitOccurenceData> MosaicDecomposer::collateAdjacentSplits(
-    std::vector<SplitPosition> potential_splits) const
+    std::vector<SplitOccurenceType> potential_splits) const
 {
     std::vector<SplitOccurenceData> collated_splits;
 
-    auto update = [](SplitPosition& current_value, SplitPosition& next_value, 
+    auto update = [](SplitOccurenceType& current_value, SplitOccurenceType& next_value, 
             SplitPosition curr_index, SplitPosition next_index)
     {
         if (next_value > 0)
         {
             if (current_value < next_value)
             {
-                next_value = static_cast<SplitPosition>(next_value + current_value);
+                next_value = static_cast<SplitOccurenceType>(next_value + current_value);
                 current_value = 0;
                 spdlog::info("collated value of position {} into position {}, new match count is {}", 
                         curr_index, next_index, next_value);
             }
             else
             {
-                current_value = static_cast<SplitPosition>(current_value + next_value);
+                current_value = static_cast<SplitOccurenceType>(current_value + next_value);
                 next_value = 0;
                 spdlog::info("collated value of position {} into position {}, new match count is {}", 
                         next_index, curr_index, current_value);
