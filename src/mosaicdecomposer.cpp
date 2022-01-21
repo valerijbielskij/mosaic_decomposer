@@ -52,8 +52,6 @@ std::vector<MosaicDecomposer::SplitDimensions> MosaicDecomposer::calculateMosaic
 
     while (const auto& frame = m_frame_provider.getNext())
     {
-        spdlog::info("starting analyzing frame: {}", processed_frames + 1);
-
         if (width == 0)
         {
             width = frame->getWidth();
@@ -207,7 +205,7 @@ std::vector<MosaicDecomposer::SplitPosition> MosaicDecomposer::dropFalsePositive
 {
     std::vector<SplitPosition> filtered_splits;
 
-    const auto sum = std::accumulate(potential_splits.begin(), potential_splits.end(), 0., 
+    const auto sum = std::accumulate(potential_splits.begin(), potential_splits.end(), 0.,
         [](double accumulated_value, const SplitOccurenceData& data) -> double
     {
         return accumulated_value + data.m_match_count;
