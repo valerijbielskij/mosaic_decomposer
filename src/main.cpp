@@ -111,7 +111,7 @@ int main(int argc, const char **argv)
         spdlog::info("processing finished, outputting dimensions of all recongnized mosaics");
         for (const auto& data : ret)
         {
-            spdlog::info("({}; {}), {}x{}", data.m_x, data.m_y, data.m_width, data.m_height);
+            spdlog::info("({:<3}; {:<3}), {:<3}x{:<3}", data.m_x, data.m_y, data.m_width, data.m_height);
         }
     }
     catch(const std::string& exception)
