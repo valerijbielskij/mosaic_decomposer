@@ -76,6 +76,7 @@ or manually:
 
 ## Notes
 * *scripts/main.py* contains draft implementation in python but main parts of the solution are commented out and have to be rewritten
+* test coverage is way too low, core algorithm is not covered, neither video or image provider classes.
 
 ## Possible improvements
 * video frame analysis could be done concurrently if performance is a concern
