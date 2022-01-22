@@ -1,5 +1,5 @@
 SET(lib_name decomposerlib)
-SET(exec_name decomposer)
+SET(exec_name decompose)
 
 find_package(spdlog)
 find_package(docopt)
