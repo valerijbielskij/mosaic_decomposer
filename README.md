@@ -75,8 +75,9 @@ or manually:
 * **Ubuntu 18.04** with gcc7.5, opencv preinstalled or built with conan
 
 ## Notes
+* default parameters were derived from manual testing of couple mosaicked videos, videos/images of a very different quality/resolution might require completely different values for accurate operation
 * *scripts/main.py* contains draft implementation in python but main parts of the solution are commented out and have to be rewritten
-* test coverage is way too low, core algorithm is not covered, neither video or image provider classes.
+* test coverage is way too low, core algorithm is not covered, neither video or image provider classes
 
 ## Possible improvements
 * video frame analysis could be done concurrently if performance is a concern
