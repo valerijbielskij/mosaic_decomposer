@@ -16,8 +16,8 @@ Mosaic decomposer is a tool for mosaic recongnition in videos or images. It uses
     python -m venv ~/py3venv
     source ~/py3venv/bin/activate # on windows use CALL
     pip3 install conan
-    cmake .. -DUSE_CONAN_OPENCV=ON # pass OFF if you have opencv preinstalled, it might require setting OpenCV_DIR var
-    make -j 8 # or open solution file if using visual studio and run build (F7)
+    cmake .. -DUSE_CONAN_OPENCV=ON # pass OFF if you have opencv preinstalled, it might require setting OpenCV_DIR variable
+    cmake --build .
     
 ## Execution
     Usage:
