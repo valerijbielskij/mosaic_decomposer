@@ -27,8 +27,8 @@ Mosaic decomposer is a tool for mosaic recongnition in videos or images. It uses
 
     Options:
       -h --help                   Show this screen.
-      video                       Specifies video decomposition mode. file path must be a valid video file.
-      image                       Specifies image decomposition mode. file path must be a valid image file.
+      video                       Specifies video decomposition mode, file path must be a valid video file.
+      image                       Specifies image decomposition mode, file path must be a valid image file.
       --version                   Show version.
       --frames=<frames>           Amount of frames to analyze, 0 for all available [default: 0].
       --skip-front-lines=<front>  Amount of lines to be skipped from the front [default: 5].
@@ -81,5 +81,5 @@ or manually:
 
 ## Possible improvements
 * video frame analysis could be done concurrently if performance is a concern
-* it's possible to avoid transposing frame coordinates, it could iterate vertically instead of always iterating horizontally
+* it's possible to avoid transposing frame coordinates, potential split recognition could also learn to iterate vertically instead of always iterating horizontally
 * opencv is heavyweight dependency, it could be reduced by using only some of it's submodules (videoio, core?) or switching to completely different library
