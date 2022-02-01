@@ -83,3 +83,4 @@ or manually:
 * video frame analysis could be done concurrently if performance is a concern
 * it's possible to avoid transposing frame coordinates, potential split recognition could also learn to iterate vertically instead of always iterating horizontally
 * opencv is heavyweight dependency, it could be reduced by using only some of it's submodules (videoio, core?) or switching to completely different library
+* provide possibility to control amount of analyzed frames throughout the whole video, it's not very useful and efficient to analyze adjacent frames as their content barely changes, especially for videos with a high frame rate
