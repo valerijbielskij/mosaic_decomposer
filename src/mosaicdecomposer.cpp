@@ -239,8 +239,8 @@ std::vector<MosaicDecomposer::SplitDimensions> MosaicDecomposer::translate(
 
     for (SplitPosition j = 0; j < horizontal_positions.size() - 1; j++)
     {
-            for (SplitPosition i = 0; i < vertical_positions.size() - 1; i++)
-            {
+        for (SplitPosition i = 0; i < vertical_positions.size() - 1; i++)
+        {
             const auto current_v = vertical_positions[i];
             const auto next_v = vertical_positions[static_cast<SplitPosition>(i + 1)];
 
