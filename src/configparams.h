@@ -28,6 +28,6 @@ struct ConfigParams
     //! it helps to filter out lines which were detected by an accident.
     //! For ex. when set to 1.5 if current average match rate is 80%, then subsequent matches with 
     //! rates lesser than 60% will be considered as false positives and dropped, 
-    //! contrarirly matches with rate above 60% will be kept.
+    //! contrarily matches with rate above 60% will be kept.
     double m_minimum_line_match_ratio = 1.8;
 };
