@@ -4,16 +4,25 @@
 
 #include "frame.h"
 
-Frame::Frame(DimensionsType width, DimensionsType height): m_pixels(std::make_shared<PixelContainer>(width, std::vector<Pixel>(height))),
+Frame::Frame(DimensionsType width, DimensionsType height): 
+    m_pixels(std::make_shared<PixelContainer>(width, std::vector<Pixel>(height))),
     m_owns_content(true)
 {
 }
 
-Frame::Frame(const Frame& other) : m_pixels(other.m_pixels), m_owns_content(false), m_transposition(other.m_transposition)
+Frame::Frame(const Frame& other) : 
+    m_pixels(other.m_pixels), 
+    m_owns_content(false), 
+    m_transposition(other.m_transposition)
 {
 }
 
-Frame::Frame(const Frame& other, Transposition transposition) : m_pixels(other.m_pixels), m_owns_content(false), m_transposition(transposition)  {}
+Frame::Frame(const Frame& other, Transposition transposition) : 
+    m_pixels(other.m_pixels), 
+    m_owns_content(false), 
+    m_transposition(transposition) 
+{
+}
 
 Frame Frame::rotate90() const
 {
