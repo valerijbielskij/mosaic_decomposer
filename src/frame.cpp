@@ -61,16 +61,15 @@ void Frame::set(DimensionsType x, DimensionsType y, const Pixel& pixel)
     {
         if (m_pixels.use_count() == 1)
         {
-            // if instance is the last owener of the memory then it can safely take over content ownership
-            m_owns_content = true;
+            // if instance is the last owner of the memory then it can safely take over content ownership
         }
         else
         {
             const auto copy = m_pixels;
             m_pixels = std::make_shared<PixelContainer>(*copy);
-
-            m_owns_content = true;
         }
+        
+        m_owns_content = true;
     }
 
     get()[tx][ty] = pixel;
